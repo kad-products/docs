@@ -1,0 +1,3 @@
+pnpm ci:lint
+pnpm ci:tests
+git lfs push origin HEAD
