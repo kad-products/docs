@@ -9,7 +9,7 @@ const AppDocument: React.FC<DocumentProps<RequestInfo>> = ({ children }: Documen
 		<head>
 			<meta charSet="utf-8" />
 			<meta name="viewport" content="width=device-width, initial-scale=1" />
-			<title>KAD RWSDK Template</title>
+			<title>KAD Products Docs</title>
 			<link rel="modulepreload" href="/src/client.tsx" />
 			<link rel="stylesheet" href={styles} />
 			{cfBeaconToken && (
