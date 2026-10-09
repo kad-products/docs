@@ -1,0 +1,77 @@
+---
+title: Semantic Release & Commitlint
+---
+
+# Semantic Release & Commitlint
+
+## Commit message conventions
+
+All commits must follow [Conventional Commits](https://www.conventionalcommits.org/) format:
+
+```
+<type>(<scope>): <description>
+
+[optional body]
+
+[optional footer]
+```
+
+**Types that trigger releases:**
+
+| Type              | Release | Changelog section        |
+| ----------------- | ------- | ------------------------ |
+| `feat`            | minor   | Features                 |
+| `fix`             | patch   | Bug Fixes                |
+| `perf`            | patch   | Performance Improvements |
+| `revert`          | patch   | Reverts                  |
+| `refactor`        | patch   | Code Refactoring         |
+| `BREAKING CHANGE` | major   | —                        |
+
+Types like `chore`, `docs`, `ci`, `test`, and `style` do not trigger a release.
+
+Commitlint enforces this format at commit time via the `commit-msg` husky hook. The config is minimal — extend `@commitlint/config-conventional`:
+
+```js
+// commitlint.config.js
+export default { extends: ['@commitlint/config-conventional'] };
+```
+
+## Release config pattern
+
+`release.config.js` exports different configurations for dry-run and CI contexts, detected by checking for `--dry-run` in `process.argv`.
+
+**Dry-run config** (used on PRs via `create-release-dry-run` workflow):
+- Sets `repositoryUrl` to the local git directory so semantic-release can analyze commits without network access
+- Sets `branches` to the current branch so it works on PRs (which check out detached merge commits, not `main`)
+- Runs only analysis plugins — no writes
+
+**CI config** (used on push to main via `create-release` workflow):
+- Sets `repositoryUrl` to the GitHub HTTPS URL
+- Runs the full plugin chain: analyze → generate notes → update changelog → bump package.json → commit → create GitHub release
+
+**Plugin chain:**
+
+```js
+plugins: [
+  ['@semantic-release/commit-analyzer', { /* conventionalcommits preset */ }],
+  ['@semantic-release/release-notes-generator', { /* conventionalcommits preset */ }],
+  '@semantic-release/changelog',
+  '@semantic-release/npm',        // bumps package.json version; skips publish if private: true
+  ['@semantic-release/git', {
+    assets: ['package.json', 'CHANGELOG.md'],
+    message: 'chore(release): ${nextRelease.version}\n\n${nextRelease.notes}',
+  }],
+  '@semantic-release/github',     // creates GitHub release with changelog as body
+]
+```
+
+`@semantic-release/npm` is always included even for private packages — it handles the `package.json` version bump. Publishing is skipped automatically when `"private": true` is set.
+
+## Token requirements
+
+The release workflow uses `KAD_GITHUB_TOKEN` (a PAT with repo and workflow scopes) rather than `GITHUB_TOKEN`. This is required for two reasons:
+
+1. The release commit must bypass branch protection rules, which the default `GITHUB_TOKEN` cannot do
+2. The release commit must trigger downstream workflows (e.g. publish), which pushes from `GITHUB_TOKEN` do not
+
+See the [create-release workflow docs](../workflows/semantic-release.md) for the full branch protection handling.

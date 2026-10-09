@@ -1,0 +1,110 @@
+---
+title: Verify Changes Workflows
+---
+
+# Verify Changes Workflows
+
+Reusable workflows intended to be composed together in a `verify-changes` caller workflow in consuming repos. Using consistent job names (`lint-code` and `run-tests`) enables org-level branch protection rulesets to require both checks universally without per-repo configuration.
+
+## `lint-code.yaml`
+
+Runs the repo's lint, format, and type checks via the `ci:lint` script. The consuming repo is responsible for defining what `ci:lint` covers — typically a combination of Biome, Knip, Prettier, and TypeScript type checking.
+
+```yaml
+lint-code:
+  uses: kad-products/platform/.github/workflows/lint-code.yaml@main
+  permissions:
+    contents: read
+    packages: read
+  secrets: inherit
+```
+
+## `run-tests.yaml`
+
+Runs the repo's full test suite via the `ci:tests` script inside the official Playwright container. Using the Playwright container as the universal baseline means repos with only unit tests run in a slightly heavier environment, but all repos use the same setup — avoiding a two-tier system that would produce inconsistent check names.
+
+Initializes Git LFS before checkout and sets `HOME: /root` to ensure Playwright can locate its browser installations inside the container.
+
+The consuming repo defines what `ci:tests` runs — it may be unit tests only, Playwright component tests only, or any combination.
+
+```yaml
+run-tests:
+  uses: kad-products/platform/.github/workflows/run-tests.yaml@main
+  permissions:
+    contents: read
+    packages: read
+  secrets: inherit
+```
+
+## `plan-open-tofu.yaml`
+
+Runs `tofu init` and `tofu plan` for a single OpenTofu configuration and posts the output as a PR comment. Add one job per configuration directory the repo manages. Unlike `lint-code` and `run-tests`, plan job names are not required to be consistent across repos — branch protection rulesets don't target them.
+
+When triggered by a pull request, posts the plan output as a comment on the PR. If a comment for the same `state_name` already exists (e.g. from a previous commit on the branch), it is updated in place rather than creating a new one.
+
+The backend configuration is fully managed by the workflow — calling repos do not declare a backend block. State is looked up at `<app_name>/<state_type>/<state_name>/terraform.tfstate` — the same key used by [apply-infrastructure.yaml](./apply-infrastructure.md), so plan and apply always operate against the same state.
+
+Plan jobs require `pull-requests: write` (to post the plan comment) rather than `packages: read`.
+
+The workflow reads the following organization secrets directly — callers do not need to map them:
+
+| Secret                           | Provisioned by                   |
+| -------------------------------- | -------------------------------- |
+| `KAD_CF_R2_ACCESS_KEY_ID_ID`     | `open-tofu/state-storage` module |
+| `TOFU_BACKEND_SECRET_ACCESS_KEY` | `open-tofu/state-storage` module |
+| `CLOUDFLARE_ACCOUNT_ID`          | Set manually as an org secret    |
+
+### Inputs
+
+| Input               | Required | Description                                                                                |
+| ------------------- | -------- | ------------------------------------------------------------------------------------------ |
+| `app_name`          | Yes      | Application name — first segment of the state key                                          |
+| `state_type`        | Yes      | State category — second segment of the state key (e.g. `github-config`, `app-deployment`)  |
+| `state_name`        | Yes      | Instance within the category — third segment of the state key (e.g. `setup`, `production`) |
+| `working_directory` | Yes      | Path to the OpenTofu root configuration within the calling repo                            |
+
+```yaml
+plan-github-config:
+  uses: kad-products/platform/.github/workflows/plan-open-tofu.yaml@main
+  with:
+    app_name: my-app
+    state_type: github-config
+    state_name: setup
+    working_directory: infrastructure/github
+  permissions:
+    contents: read
+    pull-requests: write
+  secrets: inherit
+```
+
+## `test-open-tofu.yaml`
+
+Runs `tofu init` and `tofu test` against a single OpenTofu module directory. Call it once per module — each call is an independent job and runs in parallel.
+
+### Inputs
+
+| Input               | Required | Description                         |
+| ------------------- | -------- | ----------------------------------- |
+| `working_directory` | Yes      | Path to the OpenTofu module to test |
+
+```yaml
+test-my-module:
+  uses: kad-products/platform/.github/workflows/test-open-tofu.yaml@main
+  permissions:
+    contents: read
+  with:
+    working_directory: path/to/module
+```
+
+## Required scripts
+
+Each consuming repo must define these in `package.json`:
+
+| Script     | Purpose                                |
+| ---------- | -------------------------------------- |
+| `ci:lint`  | Runs all lint, format, and type checks |
+| `ci:tests` | Runs the full test suite               |
+
+## Playwright container version
+
+The container is pinned to `mcr.microsoft.com/playwright:v1.63.0-noble`. When upgrading Playwright in a consuming repo, update the container version in the platform repo to match.

@@ -1,0 +1,42 @@
+---
+title: Testing
+---
+
+# Testing
+
+## `ci:tests` convention
+
+Every repo defines a `ci:tests` script that runs its full test suite. This is the contract that the shared `run-tests` workflow calls — the workflow doesn't know or care what testing tools are used, it just runs `pnpm ci:tests`.
+
+A repo with only Playwright component tests might have:
+```json
+"ci:tests": "pnpm playwright:run"
+```
+
+A repo with multiple test types chains them:
+```json
+"ci:tests": "pnpm test:unit && pnpm playwright:run && pnpm playwright:e2e"
+```
+
+## Playwright
+
+[Playwright](https://playwright.dev/) is used for component and end-to-end tests.
+
+**Scripts:**
+- `playwright:run` — run all tests headlessly
+- `playwright:ui` — open the Playwright UI for interactive debugging
+- `playwright:update` — update snapshots (`--update-snapshots`)
+
+**CI environment:** tests run inside the official Playwright Docker container (`mcr.microsoft.com/playwright:<version>-noble`). The container version must match the `@playwright/test` version installed in the repo. Git LFS is initialized before checkout so LFS-tracked assets (screenshots, fixtures) are available.
+
+**Pre-push:** `pnpm ci:tests` runs as part of the pre-push hook in repos with tests, ensuring tests pass before code reaches the remote.
+
+## Vitest
+
+[Vitest](https://vitest.dev/) is used for unit and component tests in repos that need fast, in-process test execution. It integrates with Vite and can run alongside Playwright.
+
+Vitest tests run within the same `ci:tests` script as Playwright — there is no separate CI workflow or script namespace for unit vs integration tests.
+
+## TypeScript type checking
+
+`types:check` runs `tsc --noEmit` as a standalone check. It is included in `ci:lint` (not `ci:tests`) since it is a static analysis step with no runtime behavior.

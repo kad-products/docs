@@ -1,0 +1,33 @@
+---
+title: Lint Commits
+---
+
+# Lint Commits
+
+Validates that all commits in a pull request follow the [Conventional Commits](https://www.conventionalcommits.org/) format using [commitlint](https://commitlint.io/). Runs only when triggered by a `pull_request` event — if called from a different trigger the lint step is skipped.
+
+The consuming repo is responsible for providing a commitlint config (e.g. `commitlint.config.js`) and having `commitlint` available as a dev dependency.
+
+## Usage
+
+```yaml
+# .github/workflows/lint-commits.yaml
+name: Lint Commits
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  lint-commits:
+    uses: kad-products/platform/.github/workflows/lint-commits.yaml@main
+    permissions:
+      contents: read
+      packages: read
+    secrets: inherit
+```
+
+## Required permissions
+
+- `contents: read`
+- `packages: read`

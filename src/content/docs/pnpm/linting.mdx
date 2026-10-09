@@ -1,0 +1,70 @@
+---
+title: Linting
+---
+
+# Linting
+
+Three tools cover linting and formatting across repos. They have distinct, non-overlapping responsibilities.
+
+## Biome
+
+[Biome](https://biomejs.dev/) handles linting and formatting for JavaScript and TypeScript files. It replaces both ESLint and Prettier for JS/TS — do not run Prettier on JS/TS files.
+
+**Scripts:**
+- `biome:check` — lint and format check (no writes)
+- `biome:fix` — auto-fix lint issues and reformat files
+
+**Config:** `biome.json` at the repo root. Key settings shared across repos:
+- Tabs for indentation, line width 130
+- Single quotes, semicolons, trailing commas
+- `noConsole: error` in production source (relaxed in test/script overrides)
+- `useExplicitType: error` for explicit return types (relaxed in test files)
+
+**In CI:** included in `ci:lint`.
+
+**Pre-commit:** runs via lint-staged on all staged files (`biome check --write --no-errors-on-unmatched --files-ignore-unknown=true`).
+
+## Knip
+
+[Knip](https://knip.dev/) finds unused exports, dependencies, and files. It catches dead code that type checkers and linters miss.
+
+**Scripts:**
+- `knip:check` — report unused code
+- `knip:fix` — auto-remove fixable unused exports
+
+**In CI:** included in `ci:lint`.
+
+**Pre-commit:** not run on staged files (operates on the whole project graph, not individual files).
+
+## Prettier
+
+[Prettier](https://prettier.io/) is used only for files that Biome does not handle: `package.json` and CSS/Less files.
+
+**Scripts:**
+- `prettier:check` — format check
+- `prettier:fix` — reformat files
+
+**Scope:** controlled via `.prettierignore`. The default pattern ignores everything except `package.json` (and CSS/Less for repos that have them):
+
+```
+# .prettierignore — repos without CSS/Less
+**
+!package.json
+```
+
+```
+# .prettierignore — repos with CSS/Less
+**
+!**/
+!package.json
+!**/*.css
+!**/*.less
+```
+
+The `!**/` line is required when un-ignoring files in subdirectories — without it, ignored parent directories block the negation patterns from taking effect.
+
+**Config:** `prettier.config.js`. Uses `prettier-plugin-packagejson` to sort and format `package.json` fields consistently.
+
+**Pre-commit:** runs via lint-staged on `package.json` and `*.{css,less}` files.
+
+**In CI:** included in `ci:lint`. Scoped by `.prettierignore` so it only checks the files listed above.

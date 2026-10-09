@@ -1,0 +1,52 @@
+---
+title: Workflows
+---
+
+# Workflows
+
+Reusable GitHub Actions workflows for use across the KAD Products organization. Consume them with `uses: kad-products/platform/.github/workflows/<name>@main` and `secrets: inherit`.
+
+## Documentation
+
+- [Caller workflows](./caller/) — how to wire up these shared workflows in your repo's caller workflow files
+- [Shared workflows](./shared/) — reference documentation for each reusable workflow managed in this repo
+
+## Naming conventions
+
+These conventions apply to all workflow files in this repo and to the caller workflows in consuming repos.
+
+### Filenames
+
+Filenames follow the pattern `<verb>-<noun>-<context>.yaml`. The verb describes the action being performed, the noun is what it acts on, and the context (optional) narrows it further — for example `create-release-dry-run.yaml`.
+
+The key principle is that names should describe **what the workflow does, not the tool it uses to do it**. `commitlint.yaml` names a tool. `lint-commits.yaml` names an action. This forces a little more thought — the obvious name is often wrong or misleading. A workflow that runs semantic-release isn't named `semantic-release.yaml`; it's named `create-release.yaml` because creating a GitHub release is what it actually does.
+
+### Workflow `name`
+
+The `name` field is the title-case equivalent of the filename, with hyphens replaced by spaces. A file named `create-release-dry-run.yaml` gets `name: Create Release Dry Run`.
+
+### Job keys
+
+When a workflow contains a single job, the job key matches the filename without the extension (e.g. `create-release`, `create-release-dry-run`). When there are two or more jobs, each key is kebab-case and describes what makes that job distinct within the context of the overall workflow.
+
+Jobs in shared workflows must not have a `name` field. GitHub derives the check run name from the job key — the string used in branch protection `required_checks` rules — and a `name` field overrides it, making the check run name diverge from the job key. This means any change to the display name silently breaks existing branch protection rules. Omitting `name` keeps the check run name stable and equal to the job key.
+
+### Step `id` and `name`
+
+All steps in all shared workflows should have a short name representing the step's purpose. Step IDs are optional and should only be added when a later step needs to reference the outputs of that step. Steps that don't expose outputs should not have an ID.
+
+## Secrets
+
+Org secrets follow the `KAD_` naming convention defined in [docs/secrets/](../secrets/readme.md). Workflow authors are responsible for mapping these to the env var names that consuming tools expect.
+
+Map secrets to tool-expected names in the job or step `env` block:
+
+```yaml
+env:
+  CLOUDFLARE_API_TOKEN: ${{ secrets.KAD_CLOUDFLARE_TOKEN }}
+  CLOUDFLARE_ACCOUNT_ID: ${{ secrets.KAD_CLOUDFLARE_ACCOUNT_ID }}
+```
+
+This keeps the secret name stable regardless of which tool consumes it. If a workflow switches deploy tooling, only the env var mapping changes.
+
+Most shared workflows in this repo handle secrets mapping internally. Callers use `secrets: inherit` and do not need to map secrets themselves.

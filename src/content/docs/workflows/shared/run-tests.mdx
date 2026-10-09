@@ -1,0 +1,33 @@
+---
+title: run-tests.yaml
+---
+
+# run-tests.yaml
+
+Runs the calling repo's `ci:tests` script via pnpm inside the official Playwright container (`mcr.microsoft.com/playwright:v1.63.0-noble`).
+
+Initializes Git LFS before checkout and sets `HOME: /root` so Playwright can locate its browser installations inside the container.
+
+## Inputs
+
+None.
+
+## Secrets
+
+Uses `GITHUB_TOKEN` automatically for authenticating with GitHub Packages.
+
+## Permissions
+
+| Permission | Level |
+|---|---|
+| `contents` | `read` |
+| `packages` | `read` |
+
+## Requirements
+
+- `.nvmrc` for Node version resolution
+- `ci:tests` script defined in `package.json`
+
+## Notes
+
+The container is pinned to `mcr.microsoft.com/playwright:v1.63.0-noble`. When upgrading Playwright in a consuming repo, update the container version in this workflow to match.

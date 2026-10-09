@@ -1,0 +1,30 @@
+---
+title: lint-commits.yaml
+---
+
+# lint-commits.yaml
+
+Validates that all commits in a pull request follow the Conventional Commits format using commitlint.
+
+The lint step runs only when triggered by a `pull_request` event — if the workflow is called from any other trigger, the step is skipped.
+
+## Inputs
+
+None.
+
+## Secrets
+
+Uses `GITHUB_TOKEN` automatically for authenticating with GitHub Packages.
+
+## Permissions
+
+| Permission | Level |
+|---|---|
+| `contents` | `read` |
+| `packages` | `read` |
+
+## Requirements
+
+- `.nvmrc` for Node version resolution
+- `commitlint` installed as a dev dependency
+- A commitlint config file (e.g. `commitlint.config.js`)

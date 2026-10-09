@@ -22,7 +22,8 @@
 			"./types/vite-env.d.ts"
 		],
 		"paths": {
-			"@/*": ["./src/*"]
+			"@/*": ["./src/*"],
+			"@source/*": ["./.source/*"]
 		},
 		/* Enable importing .json files */
 		"resolveJsonModule": true,

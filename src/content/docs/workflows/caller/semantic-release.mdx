@@ -1,0 +1,68 @@
+---
+title: Create Release Workflows
+---
+
+# Create Release Workflows
+
+Two reusable workflows for automating versioning and releases with [semantic-release](https://semantic-release.gitbook.io/semantic-release/). Both expect a `release.config.js` (or equivalent) in the consuming repo and a `.nvmrc` for Node version resolution.
+
+## `create-release.yaml`
+
+Runs semantic-release on pushes to the main branch. Handles branch protection automatically: saves the current rules, disables protection so semantic-release can push the version commit and tag, then restores the original rules whether the release succeeds or fails.
+
+Uses the `KAD_GITHUB_TOKEN` token (passed via `secrets: inherit`) rather than the default `GITHUB_TOKEN` so that the release commit triggers downstream workflows.
+
+### Usage
+
+```yaml
+# .github/workflows/create-release.yaml
+name: Create Release
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  create-release:
+    uses: kad-products/platform/.github/workflows/create-release.yaml@main
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+      packages: read
+    secrets: inherit
+```
+
+### Required secrets
+
+| Secret             | Purpose                                                                                             |
+| ------------------ | --------------------------------------------------------------------------------------------------- |
+| `KAD_GITHUB_TOKEN` | PAT with repo and workflow scopes, used to push the release commit/tag and manage branch protection |
+
+---
+
+## `create-release-dry-run.yaml`
+
+Runs semantic-release in dry-run mode on pull requests targeting the main branch. No tags, commits, or GitHub releases are created. Output is written to the job summary so you can see the projected next version and changelog directly in the PR checks.
+
+Uses `--no-ci` to bypass branch validation — PRs check out a detached merge commit rather than the target branch, which semantic-release would otherwise reject.
+
+### Usage
+
+```yaml
+# .github/workflows/create-release-dry-run.yaml
+name: Create Release Dry Run
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  create-release-dry-run:
+    uses: kad-products/platform/.github/workflows/create-release-dry-run.yaml@main
+    permissions:
+      contents: read
+      packages: read
+      pull-requests: write
+    secrets: inherit
+```

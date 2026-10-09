@@ -1,0 +1,60 @@
+---
+title: Apply Infrastructure
+---
+
+# Apply Infrastructure
+
+Runs `tofu init`, `tofu plan`, and `tofu apply` against the calling repo's OpenTofu configuration, using KAD Products' shared Cloudflare R2 bucket as the remote backend for state storage.
+
+The plan is saved and passed directly to apply, so the apply step executes exactly what was planned. This also sets up a clean split point for adding an approval gate between plan and apply in the future — that would require splitting this into two jobs with artifact upload/download, but no changes to the caller workflow.
+
+The backend configuration is fully managed by the workflow — calling repos do not declare a backend block.
+
+## Usage
+
+```yaml
+# .github/workflows/apply-infrastructure.yaml
+name: Apply Infrastructure
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  deploy-github-config:
+    uses: kad-products/platform/.github/workflows/apply-open-tofu.yaml@main
+    with:
+      app_name: my-app
+      state_type: github-config
+      state_name: setup
+      working_directory: infrastructure/github
+    secrets: inherit
+
+  deploy-production:
+    uses: kad-products/platform/.github/workflows/apply-open-tofu.yaml@main
+    with:
+      app_name: my-app
+      state_type: app-deployment
+      state_name: production
+      working_directory: infrastructure/environments/production
+    secrets: inherit
+```
+
+State is stored at `<app_name>/<state_type>/<state_name>/terraform.tfstate`. `state_name` is also used as the GitHub Actions environment for the job — if the named environment doesn't exist it will be created automatically with no protection rules.
+
+The workflow reads the following organization secrets directly — callers do not need to map them:
+
+| Secret                           | Provisioned by                   |
+| -------------------------------- | -------------------------------- |
+| `KAD_CF_R2_ACCESS_KEY_ID_ID`     | `open-tofu/state-storage` module |
+| `TOFU_BACKEND_SECRET_ACCESS_KEY` | `open-tofu/state-storage` module |
+| `CLOUDFLARE_ACCOUNT_ID`          | Set manually as an org secret    |
+
+## Inputs
+
+| Input               | Required | Description                                                                                                                   |
+| ------------------- | -------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `app_name`          | Yes      | Application name — first segment of the state key                                                                             |
+| `state_type`        | Yes      | State category — second segment of the state key (e.g. `github-config`, `app-deployment`)                                     |
+| `state_name`        | Yes      | Instance within the category — third segment of the state key and the GitHub Actions environment (e.g. `setup`, `production`) |
+| `working_directory` | Yes      | Path to the OpenTofu root configuration within the calling repo                                                               |

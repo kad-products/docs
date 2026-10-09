@@ -1,0 +1,37 @@
+---
+title: create-release.yaml
+---
+
+# create-release.yaml
+
+Runs semantic-release on pushes to the main branch to create versioned GitHub releases.
+
+Manages branch protection automatically: saves the current rules before the release, disables protection so semantic-release can push the version commit and tag, then restores the original rules whether the release succeeds or fails.
+
+Uses `KAD_GITHUB_TOKEN` rather than `GITHUB_TOKEN` so the release commit triggers downstream workflows.
+
+Uses a concurrency group (`create-release`) with `cancel-in-progress: false` to prevent concurrent releases.
+
+## Inputs
+
+None.
+
+## Secrets
+
+| Secret             | Purpose                                                                                                                                                        |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `KAD_GITHUB_TOKEN` | PAT with repo and workflow scopes — used to push the release commit/tag, manage branch protection, and ensure the release commit triggers downstream workflows |
+
+## Permissions
+
+| Permission      | Level   |
+| --------------- | ------- |
+| `contents`      | `write` |
+| `issues`        | `write` |
+| `pull-requests` | `write` |
+| `packages`      | `read`  |
+
+## Requirements
+
+- `.nvmrc` for Node version resolution
+- A semantic-release config (e.g. `release.config.js`)

@@ -37,7 +37,8 @@
 			"!**/dist",
 			"!**/.wrangler",
 			"!**/test-results",
-			"!**/.pnpm-store"
+			"!**/.pnpm-store",
+			"!.source"
 		]
 	},
 	"overrides": [

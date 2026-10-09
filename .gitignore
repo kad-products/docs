@@ -75,3 +75,6 @@ coverage
 terraform.tfstate*
 *.tfvars.backup
 *.tfvars*
+
+# fumadocs-mdx generated output
+.source

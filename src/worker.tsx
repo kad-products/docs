@@ -1,14 +1,16 @@
 import { pages } from '@kad-products/shed/rwsdk/server';
-import { except, render, route } from 'rwsdk/router';
+import { except, layout, render, route } from 'rwsdk/router';
 import { type DefaultAppContext, defineApp, type RequestInfo } from 'rwsdk/worker';
 import AppDocument from '@/documents/app';
-import Pages__root from '@/pages/root';
-import Pages__not_found from './pages/not-found';
+import DocsStandardLayout from '@/layouts/DocsStandard';
+import Pages__docs from '@/pages/docs';
 
 export default defineApp([
 	render(AppDocument, [
 		except<RequestInfo<DefaultAppContext>>(pages.handlePageError),
-		route('/', Pages__root),
-		route('*', Pages__not_found),
+		layout(DocsStandardLayout, [
+			route('/', () => <Pages__docs slug="index" />),
+			route('/*', ({ params }) => <Pages__docs slug={params.$0} />),
+		]),
 	]),
 ]);

@@ -1,0 +1,44 @@
+---
+title: Script Naming Conventions
+---
+
+# Script Naming Conventions
+
+Package scripts follow a `<namespace>:<purpose>` pattern. The namespace groups scripts by when and how they're invoked; the purpose describes what they do.
+
+## Namespaces
+
+### `ci:<purpose>` — CI entrypoints
+
+Scripts that CI workflows call directly. These are the contracts between the repo and the shared platform workflows — the workflow calls a well-known script name, and the repo defines what that means.
+
+| Script | Purpose |
+|---|---|
+| `ci:lint` | All lint, format, and type checks. Called by the `lint-code` workflow. |
+| `ci:tests` | Full test suite. Called by the `run-tests` workflow. |
+
+### `staged:<purpose>` — Pre-commit entrypoints
+
+Scripts invoked by husky hooks on staged files.
+
+| Script | Purpose |
+|---|---|
+| `staged:lint` | Runs lint-staged, applying auto-fixes to staged files before commit. |
+
+### `<tool>:<action>` — Individual tool operations
+
+Direct invocations of specific tools. Used by the `ci:` and `staged:` scripts, and useful to run individually during development.
+
+| Pattern | Examples |
+|---|---|
+| `<tool>:check` | `biome:check`, `knip:check`, `prettier:check`, `types:check` |
+| `<tool>:fix` | `biome:fix`, `knip:fix`, `prettier:fix` |
+| `<tool>:<mode>` | `playwright:run`, `playwright:ui`, `playwright:update` |
+
+## Principles
+
+**Namespace by invocation context, not by tool.** `ci:lint` makes clear this is the CI entrypoint for linting. `lint:ci` inverts this — it reads as "lint, in CI mode" which is a property of the script rather than its role.
+
+**CI scripts are contracts.** The `ci:lint` and `ci:tests` scripts are what the shared platform workflows call. Every repo must define them. What they contain is up to the repo — a simple repo might have `pnpm biome:check` in `ci:lint`, while a more complex one chains multiple tools.
+
+**Keep `ci:` scripts composable.** `ci:lint` should call the individual `<tool>:check` scripts rather than inlining commands, so developers can run individual checks during development without duplicating the logic.

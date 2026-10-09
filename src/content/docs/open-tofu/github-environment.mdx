@@ -1,0 +1,34 @@
+---
+title: github-environment
+---
+
+# github-environment
+
+Adds a deployment environment to an existing GitHub repository.
+
+## What it creates
+
+- **Repository environment** with all org admins set as required reviewers
+- **Deployment policy** restricting deployments to `v*` tags only, matching the semver tag ruleset enforced by [github-repo](./github-repo.md)
+
+## Usage
+
+```hcl
+module "environment" {
+  source = "github.com/kad-products/platform//open-tofu/modules/github-environment?ref=main"
+
+  repo_name        = "my-app"
+  environment_name = "production"
+}
+```
+
+Pin `ref` to a release tag in production to avoid unexpected changes.
+
+## Variables
+
+| Variable | Type | Required | Description |
+|---|---|---|---|
+| `repo_name` | `string` | Yes | Repository slug the environment belongs to |
+| `environment_name` | `string` | Yes | Environment name — lowercase letters and hyphens only (e.g. `production`, `staging`) |
+
+`environment_name` rejects uppercase letters and numbers. Valid: `production`, `staging`, `integration`. Invalid: `Production`, `staging-1`.

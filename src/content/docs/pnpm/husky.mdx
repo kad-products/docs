@@ -1,0 +1,57 @@
+---
+title: Husky
+---
+
+# Husky
+
+[Husky](https://typicode.github.io/husky/) manages git hooks. Hooks are defined as executable shell scripts in `.husky/` and initialized via the `prepare` lifecycle script (`"prepare": "husky"`), which runs automatically on `pnpm install`.
+
+## Hooks
+
+### `commit-msg`
+
+Runs commitlint against the commit message to enforce Conventional Commits format.
+
+```sh
+npx --no -- commitlint --edit $1
+```
+
+The `--no` flag prevents npx from downloading commitlint if it is not installed — commitlint must be present as a devDependency.
+
+### `pre-commit`
+
+Runs lint-staged to auto-fix and format staged files before they are committed.
+
+```sh
+pnpm staged:lint
+```
+
+### `pre-push`
+
+Runs the full lint and test suite before pushing. Fails fast if checks don't pass, preventing broken code from reaching the remote.
+
+For repos with Git LFS:
+```sh
+git lfs push origin HEAD
+pnpm ci:lint
+pnpm ci:tests
+```
+
+For repos without tests (e.g. the platform repo):
+```sh
+pnpm ci:lint
+```
+
+### `post-checkout` and `post-merge`
+
+Automatically installs dependencies and switches Node versions after a branch checkout or merge, keeping the local environment in sync without manual intervention.
+
+```sh
+export NVM_DIR="${NVM_DIR:-$HOME/.nvm}"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" && nvm install && nvm use
+pnpm install
+```
+
+## CI behavior
+
+Husky hooks must not run in CI. The shared release workflow sets `HUSKY: 0` in the environment for the semantic-release step to prevent hooks from interfering with the automated release commit. Non-release CI workflows don't trigger hooks because they don't make git commits.

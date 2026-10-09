@@ -1,0 +1,32 @@
+---
+title: create-release-dry-run.yaml
+---
+
+# create-release-dry-run.yaml
+
+Runs semantic-release in dry-run mode on pull requests to preview the next version and changelog without creating tags, commits, or GitHub releases.
+
+Output is written to the job summary and posted as a comment on the PR. If a comment already exists from a previous commit on the branch, it is updated in place.
+
+Uses `--no-ci` to bypass semantic-release's branch validation — PRs check out a detached merge commit rather than the target branch, which semantic-release would otherwise reject.
+
+## Inputs
+
+None.
+
+## Secrets
+
+Uses `GITHUB_TOKEN` automatically.
+
+## Permissions
+
+| Permission | Level |
+|---|---|
+| `contents` | `read` |
+| `packages` | `read` |
+| `pull-requests` | `write` |
+
+## Requirements
+
+- `.nvmrc` for Node version resolution
+- A semantic-release config (e.g. `release.config.js`)

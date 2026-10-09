@@ -1,0 +1,40 @@
+---
+title: deploy-app-cloudflare.yaml
+---
+
+# deploy-app-cloudflare.yaml
+
+## Check names
+
+| Job | Check name |
+|---|---|
+| Integration | `deploy-integration` |
+| Staging | `deploy-staging` |
+| Production | `deploy-production` |
+
+Deploys a Cloudflare application to three environments in sequence: integration, then staging, then production. Each stage uses its own GitHub Actions environment, which can be configured with approval gates.
+
+Runs the repo's `deploy` script via pnpm, passing `CLOUDFLARE_ENV` and `VITE_APP_VERSION` as environment variables.
+
+## Inputs
+
+| Input | Required | Description |
+|---|---|---|
+| `tag` | Yes | Git tag to deploy (e.g. `v1.2.3`) |
+
+## Secrets
+
+| Secret | Required from |
+|---|---|
+| `CLOUDFLARE_API_TOKEN` | GitHub Environments (`integration`, `staging`, `production`) |
+| `CLOUDFLARE_ACCOUNT_ID` | GitHub Environments (`integration`, `staging`, `production`) |
+
+## Permissions
+
+No explicit permissions declared. Uses the caller's default permissions.
+
+## Requirements
+
+- `.nvmrc` for Node version resolution
+- `deploy` script defined in `package.json`
+- GitHub Environments named `integration`, `staging`, and `production` with `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` secrets configured
