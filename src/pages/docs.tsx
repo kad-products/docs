@@ -2,18 +2,19 @@ import type { InferPageType } from 'fumadocs-core/source';
 import { DocsBody, DocsDescription, DocsPage, DocsTitle } from 'fumadocs-ui/layouts/docs/page';
 import defaultMdxComponents from 'fumadocs-ui/mdx';
 import type React from 'react';
-import { requestInfo } from 'rwsdk/worker';
+import type { RequestInfo } from 'rwsdk/worker';
+// import { requestInfo } from 'rwsdk/worker';
 import { source } from '@/lib/source';
 
 type Page = InferPageType<typeof source>;
 
-export default async function Pages__docs({ slug: rawSlug }: { slug: string }): Promise<React.JSX.Element> {
-	const slug = rawSlug.replace(/\/+$/, '');
+export default async function Pages__docs({ request, response }: RequestInfo): Promise<React.JSX.Element> {
+	const slug = new URL(request.url).pathname.replace(/\/+$/, '');
 	const slugs = slug === 'index' ? [] : slug.split('/');
 	const page: Page | undefined = source.getPage(slugs);
 
 	if (!page) {
-		requestInfo.response.status = 404;
+		response.status = 404;
 		return (
 			<DocsPage>
 				<DocsBody>

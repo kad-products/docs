@@ -8,9 +8,6 @@ import Pages__docs from '@/pages/docs';
 export default defineApp([
 	render(AppDocument, [
 		except<RequestInfo<DefaultAppContext>>(pages.handlePageError),
-		layout(DocsStandardLayout, [
-			route('/', () => <Pages__docs slug="index" />),
-			route('/*', ({ params }) => <Pages__docs slug={params.$0} />),
-		]),
+		layout(DocsStandardLayout, [route('/*', Pages__docs)]),
 	]),
 ]);
