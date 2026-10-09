@@ -13,7 +13,7 @@
 		"biome:fix": "biome check --write .",
 		"build": "vite build",
 		"check": "npm run generate && npm run types",
-		"ci:lint": "pnpm types:check && pnpm biome:check && pnpm knip:check && pnpm prettier:check",
+		"ci:lint": "pnpm build && pnpm types:check && pnpm biome:check && pnpm knip:check && pnpm prettier:check",
 		"ci:tests": "pnpm test:run && pnpm build",
 		"clean": "npm run clean:vite",
 		"clean:vite": "rm -rf ./node_modules/.vite",

@@ -16,4 +16,5 @@ jobs:
       tag: ${{ github.ref }}
     permissions:
       contents: write
+      packages: read
     secrets: inherit
