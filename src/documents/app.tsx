@@ -20,7 +20,7 @@ const AppDocument: React.FC<DocumentProps<RequestInfo>> = ({ children }: Documen
 				/>
 			)}
 		</head>
-		<body className="dark">
+		<body>
 			<div id="root">{children}</div>
 			<script>import("/src/client.tsx")</script>
 		</body>
