@@ -35,7 +35,6 @@
 	},
 	"dependencies": {
 		"@kad-products/shed": "^1.0.0",
-		"classnames": "^2.5.1",
 		"fumadocs-core": "16.17.1",
 		"fumadocs-ui": "npm:@fumadocs/base-ui@16.17.1",
 		"react": "19.3.0",
