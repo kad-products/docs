@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/kad-products/docs/compare/v1.0.0...v1.0.1) (2026-10-09)
+
+### Bug Fixes
+
+* **ci:** give cf deploy package perms ([8cb9c70](https://github.com/kad-products/docs/commit/8cb9c704c1ba3d563b00c6ca9b066f38ce35b66e))
+
 ## 1.0.0 (2026-10-09)
 
 ### Features
