@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/kad-products/docs/compare/v1.0.1...v1.1.0) (2026-10-09)
+
+### Features
+
+* enable better hostnames that fit the standard KAD pattern ([88a2248](https://github.com/kad-products/docs/commit/88a22488992252c63946b6eb586eab712f46cceb))
+
 ## [1.0.1](https://github.com/kad-products/docs/compare/v1.0.0...v1.0.1) (2026-10-09)
 
 ### Bug Fixes
